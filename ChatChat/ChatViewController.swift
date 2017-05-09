@@ -14,13 +14,29 @@ final class ChatViewController: JSQMessagesViewController {
     private lazy var messageRef: FIRDatabaseReference = self.channelRef!.child("messages")
     private var newMessageRefHandle: FIRDatabaseHandle?
     
+    //Create a Firebase reference that tracks whether the local user is typing
+    private lazy var userIsTypingRef: FIRDatabaseReference = self.channelRef!.child("typingIndicator").child(self.senderId)
+    private var localTyping = false
+    var isTyping: Bool {
+        get {
+            return localTyping
+        }
+        set {
+            localTyping = newValue
+            userIsTypingRef.setValue(newValue)
+        }
+    }
+    
+    //retrieve all of the users that are currently typing
+    private lazy var usersTypingQuery: FIRDatabaseQuery = self.channelRef!.child("typingIndicator").queryOrderedByValue().queryEqual(toValue: true)
+    
     var channelRef: FIRDatabaseReference?
     var channel: Channel? {
         didSet {
             title = channel?.name
         }
     }
-  // MARK: View Lifecycle
+  // END properties
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -33,10 +49,10 @@ final class ChatViewController: JSQMessagesViewController {
     observeMessages()
   }
   
-//  override func viewDidAppear(_ animated: Bool) {
-//    super.viewDidAppear(animated)
-//    
-//  }
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        observeTyping()
+    }
   
   // Collection view data source (and related) methods
     override func collectionView(_ collectionView: JSQMessagesCollectionView!, messageDataForItemAt indexPath: IndexPath!) -> JSQMessageData! {
@@ -101,6 +117,7 @@ final class ChatViewController: JSQMessagesViewController {
         JSQSystemSoundPlayer.jsq_playMessageSentSound()
         
         finishSendingMessage()
+        isTyping = false //reset typing indicator when message is sent
     }
 
     //display messages -> call addMessage when .ChildAdded event occurs
@@ -124,6 +141,31 @@ final class ChatViewController: JSQMessagesViewController {
                 print("Error! Could not decode message data")
             }
         })
+    }
+    
+    //other user is typing
+    override func textViewDidChange(_ textView: UITextView) {
+        super.textViewDidChange(textView)
+        // If the text is not empty, the user is typing
+        isTyping = textView.text != ""
+    }
+    
+    private func observeTyping() {
+        let typingIndicatorRef = channelRef!.child("typingIndicator")
+        userIsTypingRef = typingIndicatorRef.child(senderId)
+        userIsTypingRef.onDisconnectRemoveValue()
+        
+        //observe for changes using .value
+        usersTypingQuery.observe(.value) { (data: FIRDataSnapshot) in
+            
+            //If the there’s just one user and that’s the local user, don’t display the indicator
+            if data.childrenCount == 1 && self.isTyping {
+                return
+            }
+            
+            self.showTypingIndicator = data.childrenCount > 0
+            self.scrollToBottom(animated: true)
+        }
     }
   
   // UITextViewDelegate methods

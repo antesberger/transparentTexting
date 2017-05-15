@@ -1,11 +1,20 @@
 import UIKit
 import Firebase
 import JSQMessagesViewController
+import AVFoundation
+import Foundation
 
 //inherit from JSQMessagesViewController to get the chat UI
 final class ChatViewController: JSQMessagesViewController {
-  
+    
     //Properties
+    let captureSession = AVCaptureSession()
+    let stillImageOutput = AVCaptureStillImageOutput()
+    var previewLayer : AVCaptureVideoPreviewLayer?
+    
+    // If we find a device we'll store it here for later use
+    var captureDevice : AVCaptureDevice?
+    
     var messages = [JSQMessage]() //array to store the various instances of JSQMessage
     
     lazy var outgoingBubbleImageView: JSQMessagesBubbleImage = self.setupOutgoingBubble()
@@ -36,25 +45,47 @@ final class ChatViewController: JSQMessagesViewController {
             title = channel?.name
         }
     }
-  // END properties
-  
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    self.senderId = FIRAuth.auth()?.currentUser?.uid
+    // END properties
+     
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.senderId = FIRAuth.auth()?.currentUser?.uid
+        
+        //camera setup
+        captureSession.sessionPreset = AVCaptureSessionPresetHigh
+        
+        if let devices = AVCaptureDevice.devices() as? [AVCaptureDevice] {
+            // Loop through all the capture devices on this phone
+            for device in devices {
+                // Make sure this particular device supports video
+                if (device.hasMediaType(AVMediaTypeVideo)) {
+                    // Finally check the position and confirm we've got the back camera
+                    if(device.position == AVCaptureDevicePosition.back) {
+                        captureDevice = device
+                        if captureDevice != nil {
+                            print("Capture device found")
+                            beginSession()
+                        }
+                    }
+                }
+            }
+        }
+
+        // No avatars
+        collectionView!.collectionViewLayout.incomingAvatarViewSize = CGSize.zero
+        collectionView!.collectionViewLayout.outgoingAvatarViewSize = CGSize.zero
+        
+        self.collectionView.backgroundColor = UIColor.clear
+        
+        observeMessages()
+    }
     
-    // No avatars
-    collectionView!.collectionViewLayout.incomingAvatarViewSize = CGSize.zero
-    collectionView!.collectionViewLayout.outgoingAvatarViewSize = CGSize.zero
-    
-    observeMessages()
-  }
-  
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         observeTyping()
     }
-  
-  // Collection view data source (and related) methods
+    
+    // Collection view data source (and related) methods
     override func collectionView(_ collectionView: JSQMessagesCollectionView!, messageDataForItemAt indexPath: IndexPath!) -> JSQMessageData! {
         return messages[indexPath.item]
     }
@@ -62,11 +93,39 @@ final class ChatViewController: JSQMessagesViewController {
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return messages.count
     }
-  
-  // MARK: Firebase related methods
-  
-  
-  // UI and User Interaction
+    
+    //camera setup
+    func beginSession() {
+        
+        do {
+            try captureSession.addInput(AVCaptureDeviceInput(device: captureDevice))
+            stillImageOutput.outputSettings = [AVVideoCodecKey:AVVideoCodecJPEG]
+            
+            if captureSession.canAddOutput(stillImageOutput) {
+                captureSession.addOutput(stillImageOutput)
+            }
+            
+        }
+        catch {
+            print("error: \(error.localizedDescription)")
+        }
+        
+        guard let previewLayer = AVCaptureVideoPreviewLayer(session: captureSession) else {
+            print("no preview layer")
+            return
+        }
+        
+        self.view.layer.insertSublayer(previewLayer, at:0)
+        previewLayer.frame = self.view.layer.frame
+        captureSession.startRunning()
+    }
+    
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // Dispose of any resources that can be recreated.
+    }
+    
+    // UI and User Interaction
     //Bubbles of outgoing messages
     private func setupOutgoingBubble() -> JSQMessagesBubbleImage {
         let bubbleImageFactory = JSQMessagesBubbleImageFactory()
@@ -119,7 +178,7 @@ final class ChatViewController: JSQMessagesViewController {
         finishSendingMessage()
         isTyping = false //reset typing indicator when message is sent
     }
-
+    
     //display messages -> call addMessage when .ChildAdded event occurs
     private func observeMessages() {
         messageRef = channelRef!.child("messages")
@@ -167,8 +226,8 @@ final class ChatViewController: JSQMessagesViewController {
             self.scrollToBottom(animated: true)
         }
     }
-  
-  // UITextViewDelegate methods
+    
+    // UITextViewDelegate methods
     // asks the data source for the message bubble image data that corresponds to the message item at indexPath in the collectionView
     override func collectionView(_ collectionView: JSQMessagesCollectionView!, messageBubbleImageDataForItemAt indexPath: IndexPath!) -> JSQMessageBubbleImageDataSource! {
         

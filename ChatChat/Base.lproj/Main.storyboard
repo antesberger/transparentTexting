@@ -21,7 +21,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Really Instant Chat" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="12" translatesAutoresizingMaskIntoConstraints="NO" id="edD-sW-bvM">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Dare2BeAware" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="12" translatesAutoresizingMaskIntoConstraints="NO" id="edD-sW-bvM">
                                 <rect key="frame" x="0.5" y="106" width="600" height="58"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="351" id="eS4-pG-wqb"/>
@@ -44,7 +44,7 @@
                                     <constraint firstAttribute="height" constant="50" id="qzt-Zl-Scp"/>
                                 </constraints>
                                 <fontDescription key="fontDescription" name="AvenirNext-DemiBold" family="Avenir Next" pointSize="17"/>
-                                <state key="normal" title="Login anonymously">
+                                <state key="normal" title="Login">
                                     <color key="titleColor" red="0.17254901960784313" green="0.37647058823529411" blue="0.83921568627450982" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </state>
                                 <userDefinedRuntimeAttributes>
@@ -208,4 +208,5 @@
             <point key="canvasLocation" x="976" y="389"/>
         </scene>
     </scenes>
+    <color key="tintColor" red="0.21955731511116028" green="0.47222161293029785" blue="0.87087053060531616" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
 </document>

@@ -41,10 +41,45 @@ class ChannelListViewController: UITableViewController {
     //receive update after creation of new channel
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "RW RIC"
+        
+        // StatusBar style
+        UIApplication.shared.statusBarStyle = .default
+        
+        // NavigationBar style
+        let color = UIColor(red: 1, green: 1, blue: 1, alpha: 0.3)
+        let image = imageFromColor(color: color, size: CGSize(width: 1, height: 1))
+        
+        self.navigationController?.navigationBar.isTranslucent=true;
+        self.navigationController?.navigationBar.setBackgroundImage(image, for: UIBarMetrics.default)
+        
+        self.navigationController?.navigationBar.barStyle = .default
+        self.navigationController?.navigationBar.tintColor = UIColor.black
+        self.navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName : UIColor.black]
+
+        
         observeChannels()
     }
     
+    //color for navigation bar
+    func imageFromColor(color:UIColor,size:CGSize)->UIImage{
+        let rect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
+        UIGraphicsBeginImageContext(rect.size);
+        let context = UIGraphicsGetCurrentContext();
+        
+        context!.setFillColor(color.cgColor);
+        context!.fill(rect);
+        
+        var image = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        
+        UIGraphicsBeginImageContext(size)
+        image?.draw(in: rect)
+        image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return image!;
+    }
+
     deinit {
         if let refHandle = channelRefHandle {
             // stop observing database changes when the view controller dies

@@ -78,20 +78,6 @@ final class ChatViewController: JSQMessagesViewController {
         // Collection view style
         self.collectionView.backgroundColor = UIColor.clear
 
-        // StatusBar style
-        UIApplication.shared.statusBarStyle = .default
-        
-        // NavigationBar style
-        let color = UIColor(red: 1, green: 1, blue: 1, alpha: 0.3)
-        let image = imageFromColor(color: color, size: CGSize(width: 1, height: 1))
-        
-        self.navigationController?.navigationBar.isTranslucent=true;
-        self.navigationController?.navigationBar.setBackgroundImage(image, for: UIBarMetrics.default)
-        
-        self.navigationController?.navigationBar.barStyle = .default
-        self.navigationController?.navigationBar.tintColor = UIColor.black
-        self.navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName : UIColor.black]
-        
         observeMessages()
     }
     
@@ -144,13 +130,13 @@ final class ChatViewController: JSQMessagesViewController {
     //Bubbles of outgoing messages
     private func setupOutgoingBubble() -> JSQMessagesBubbleImage {
         let bubbleImageFactory = JSQMessagesBubbleImageFactory(bubble: UIImage.jsq_bubbleRegularStroked(), capInsets: .zero)
-        return bubbleImageFactory!.outgoingMessagesBubbleImage(with: UIColor.jsq_messageBubbleBlue())
+        return bubbleImageFactory!.outgoingMessagesBubbleImage(with: UIColor.jsq_messageBubbleBlue().withAlphaComponent(CGFloat(0.7)))
     }
     
     //Bubbles of incoming messages
     private func setupIncomingBubble() -> JSQMessagesBubbleImage {
         let bubbleImageFactory = JSQMessagesBubbleImageFactory(bubble: UIImage.jsq_bubbleRegularStroked(), capInsets: .zero)
-        return bubbleImageFactory!.incomingMessagesBubbleImage(with: UIColor.white.withAlphaComponent(CGFloat(0.5)))
+        return bubbleImageFactory!.incomingMessagesBubbleImage(with: UIColor.jsq_messageBubbleLightGray().withAlphaComponent(CGFloat(0.5)))
     }
     
     //Remove avatars
@@ -164,14 +150,14 @@ final class ChatViewController: JSQMessagesViewController {
         let message = messages[indexPath.item]
         
         if message.senderId == senderId {
-            cell.textView?.layer.borderColor = UIColor.jsq_messageBubbleBlue().cgColor
+            cell.textView?.layer.borderColor = UIColor.clear.cgColor
             cell.textView?.textColor = UIColor.white
             cell.textView?.backgroundColor = UIColor.black.withAlphaComponent(CGFloat(0.3))
 
         } else {
             cell.textView?.layer.borderColor = UIColor.clear.cgColor
-            cell.textView?.textColor = UIColor.black
-            cell.textView?.backgroundColor = UIColor.white.withAlphaComponent(CGFloat(0.5))
+            cell.textView?.textColor = UIColor.white
+            cell.textView?.backgroundColor = UIColor.black.withAlphaComponent(CGFloat(0.3))
         }
 
         cell.textView?.layer.cornerRadius = 19
@@ -265,23 +251,4 @@ final class ChatViewController: JSQMessagesViewController {
         }
     }
     
-    //color for navigation bar
-    func imageFromColor(color:UIColor,size:CGSize)->UIImage{
-        let rect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
-        UIGraphicsBeginImageContext(rect.size);
-        let context = UIGraphicsGetCurrentContext();
-        
-        context!.setFillColor(color.cgColor);
-        context!.fill(rect);
-        
-        var image = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
-        
-        UIGraphicsBeginImageContext(size)
-        image?.draw(in: rect)
-        image = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        
-        return image!;
-    }
 }

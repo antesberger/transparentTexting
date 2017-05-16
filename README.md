@@ -3,12 +3,11 @@
 ToDo:
 
 Design 
-- text color
-- keyboard (transparent or not)
-- 
+- text color -> DONE
+- bubble design -> DONE
 
 Implementation
-- transparent Background 
+- transparent Background -> DONE
 
 Logging
 - extra db or Firebase?

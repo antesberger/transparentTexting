@@ -1,11 +1,14 @@
 import UIKit
 import Firebase
 
+var userName : String = String()
+
 class LoginViewController: UIViewController {
   
     @IBOutlet weak var nameField: UITextField!
     @IBOutlet weak var bottomLayoutGuideConstraint: NSLayoutConstraint!
   
+    
     // MARK: View Lifecycle
   
     override func viewWillAppear(_ animated: Bool) {
@@ -30,7 +33,9 @@ class LoginViewController: UIViewController {
                     print(err.localizedDescription)
                     return
                 }
-            
+                
+                userName = self.nameField.text!
+                
                 //if there wasn’t an error, trigger the segue to move to the ChannelListViewController
                 self.performSegue(withIdentifier: "LoginToChat", sender: nil)
             })

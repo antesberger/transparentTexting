@@ -3,6 +3,7 @@ import Firebase
 import JSQMessagesViewController
 import AVFoundation
 import Foundation
+import CoreMotion
 
 //inherit from JSQMessagesViewController to get the chat UI
 final class ChatViewController: JSQMessagesViewController {
@@ -11,6 +12,8 @@ final class ChatViewController: JSQMessagesViewController {
     let captureSession = AVCaptureSession()
     let stillImageOutput = AVCaptureStillImageOutput()
     var previewLayer : AVCaptureVideoPreviewLayer?
+    
+    let manager = CMMotionManager()
     
     // If we find a device we'll store it here for later use
     var captureDevice : AVCaptureDevice?
@@ -45,12 +48,16 @@ final class ChatViewController: JSQMessagesViewController {
             title = channel?.name
         }
     }
+    
+    //Database
+    let URL_SAVE_TEAM = "http://la-webtest.de/mob/webservice/api/createteam.php"
+    
     // END properties
      
     override func viewDidLoad() {
         super.viewDidLoad()
         self.senderId = FIRAuth.auth()?.currentUser?.uid
-        
+
         //camera setup
         captureSession.sessionPreset = AVCaptureSessionPresetHigh
         
@@ -78,6 +85,9 @@ final class ChatViewController: JSQMessagesViewController {
         // Collection view style
         self.collectionView.backgroundColor = UIColor.clear
 
+        logGyro()
+        DBpost(name: "lukas", time: 0.1, gyrox: 0.223)
+        
         observeMessages()
     }
     
@@ -93,6 +103,77 @@ final class ChatViewController: JSQMessagesViewController {
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return messages.count
+    }
+    
+    //POST to WebService
+    func DBpost(name: String, time: Double, gyrox: Double) {
+        //created NSURL
+        let requestURL = NSURL(string: URL_SAVE_TEAM)
+        let request = NSMutableURLRequest(url: requestURL! as URL)
+        request.httpMethod = "POST"
+        
+        //hard coded input
+        let postParameters = "condition=ConditionA&name=" + name + "&time=" + String(time) + "&gyrox=" + String(gyrox)
+        
+        request.httpBody = postParameters.data(using: String.Encoding.utf8)
+        
+        //creating a task to send the post request
+        let task = URLSession.shared.dataTask(with: request as URLRequest){
+            data, response, error in
+            
+            if error != nil{
+                print("error is \(error)")
+                return;
+            }
+            
+            //parsing the response
+            do {
+                //converting resonse to NSDictionary
+                let myJSON =  try JSONSerialization.jsonObject(with: data!, options: .mutableContainers) as? NSDictionary
+                
+                //parsing the json
+                if let parseJSON = myJSON {
+                    
+                    //creating a string
+                    var msg : String!
+                    
+                    //getting the json response
+                    msg = parseJSON["message"] as! String?
+                    
+                    //printing the response
+                    print(msg)
+                    
+                }
+            } catch {
+                print(error)
+            }
+            
+        }
+        //executing the task
+        task.resume()
+    }
+    
+    //measures pitch value in degree
+    func logGyro() {
+        if manager.isGyroAvailable {
+            if manager.isDeviceMotionAvailable {
+                manager.deviceMotionUpdateInterval = 1.00
+                manager.startDeviceMotionUpdates(to: OperationQueue.current!, withHandler:{
+                    data, error in
+                    if let attitude = data?.attitude {
+                        let attitudeX = attitude.quaternion.x
+                        let attitudeY = attitude.quaternion.y
+                        let attitudeZ = attitude.quaternion.z
+                        let attitudeW = attitude.quaternion.w
+                        
+                        let pitchRadian = atan2(2*attitudeX * attitudeW + 2*attitudeY * attitudeZ, 1 - 2*attitudeX * attitudeX - 2*attitudeZ * attitudeZ)
+                        let pitchDegree = round(1000 * (pitchRadian * 180.0/Double.pi))/1000
+                        
+                        print("PitchDegree: \(pitchDegree)")
+                    }
+                })
+            }
+        }
     }
     
     //camera setup

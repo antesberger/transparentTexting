@@ -86,7 +86,6 @@ final class ChatViewController: JSQMessagesViewController {
         self.collectionView.backgroundColor = UIColor.clear
 
         logGyro()
-        DBpost(name: "lukas", time: 0.1, gyrox: 0.223)
         
         observeMessages()
     }
@@ -94,6 +93,11 @@ final class ChatViewController: JSQMessagesViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         observeTyping()
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        manager.stopGyroUpdates()
+        manager.stopDeviceMotionUpdates()
     }
     
     // Collection view data source (and related) methods
@@ -155,9 +159,10 @@ final class ChatViewController: JSQMessagesViewController {
     
     //measures pitch value in degree
     func logGyro() {
+        var time = 0.0
         if manager.isGyroAvailable {
             if manager.isDeviceMotionAvailable {
-                manager.deviceMotionUpdateInterval = 1.00
+                manager.deviceMotionUpdateInterval = 0.33
                 manager.startDeviceMotionUpdates(to: OperationQueue.current!, withHandler:{
                     data, error in
                     if let attitude = data?.attitude {
@@ -169,7 +174,11 @@ final class ChatViewController: JSQMessagesViewController {
                         let pitchRadian = atan2(2*attitudeX * attitudeW + 2*attitudeY * attitudeZ, 1 - 2*attitudeX * attitudeX - 2*attitudeZ * attitudeZ)
                         let pitchDegree = round(1000 * (pitchRadian * 180.0/Double.pi))/1000
                         
+                        time += 0.33
                         print("PitchDegree: \(pitchDegree)")
+                        
+                        self.DBpost(name: userName, time: time, gyrox: pitchDegree)
+
                     }
                 })
             }

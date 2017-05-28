@@ -41,3 +41,8 @@ TODO:
 - logging in datenbank
 - vorbereitung prestudy (-> install all apps on phone) TESTING
 
+Mini summary:
+- Steps: Acquired basic skills in the programming language Swift and ios programming in general -> discussed programming and design challenges -> considered a rough basic structure of the app
+- Tools: Xcode (IDE), Firebase (mobile & web application development platform) and MySQL database to save data, Swift & PHP as programming language
+- Implementation: implemented a real-time chat app using the Firebase framework to synchronize real time data, implemented transparent background, 
+- Design: We have considered three different speech bubble designs: We have adapted to the basic design guidlines of apple and have changed small things regarding the text color, text bubbles design etc.
